@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CWR</title>
+    <link rel="stylesheet" href="/static/css/fdxy.min.css">
+    <script src="/static/js/raj.js"></script>
+    <script src="/static/js/brutal_1804.js"></script>
+</head>
+<body>
+    <div class="grid-container" style="word-break: break-all;">
+        <div class="grid-x" style="margin-top:1.2rem;">
+            <div class="cell small-1 medium-2 large-3">&nbsp;</div>
+            <div class="cell small-10 medium-8 large-6">
+                <p style="line-height: 3.6rem;">
+                    <h3>注册</h3>
+                </p>
+
+                <form onsubmit="return false;" id="register-form">
+                    <label>邮箱</label>
+                    <input type="text" value="" id="email" placeholder="邮箱" required>
+
+                    <label>用户名</label>
+                    <input type="text" value="" id="username" placeholder="用户名" required>
+
+                    <label>密码</label>
+                    <input type="password" value="" id="passwd" required oninput="clear_tip();">
+
+                    <label>重复密码</label>
+                    <input type="password" value="" id="repasswd" required oninput="clear_tip();">
+
+                    <input type="submit" id="register-btn" class="button small success" onclick="ajax_register()">
+                </form>
+                <a href="/user/login">登录 </a>
+                <p id="ret-tip"></p>
+            </div>
+            <div class="cell small-1 medium-2 large-3">&nbsp;</div>
+        </div>
+    </div>
+    <script>
+        function clear_tip() {
+            brutal.autod('#ret-tip', '');
+        }
+
+        function ajax_register() {
+            clear_tip();
+
+            var data = {
+                email   : brutal.autod('#email'),
+                username: brutal.autod('#username').trim(),
+                passwd  : brutal.autod('#passwd').trim()
+            };
+
+            var repasswd = brutal.autod('#repasswd');
+
+            if (data.username.length == 0 || data.passwd.length == 0 || data.email.length == 0) {
+                brutal.autod('#ret-tip', '请填写相应字段');
+                return false;
+            }
+
+            if (data.passwd !== repasswd) {
+                brutal.autod('#ret-tip', '两次输入的密码不一致');
+                return false;
+            }
+            
+            var preg = /^[a-z0-9\-~!@#$\^&*_]{8,16}$/i;
+            if (!preg.test(data.passwd)) {
+                brutal.autod('#ret-tip', '密码不符合要求：8～16未字母数字和~!@#$%^&*-_');
+                return false;
+            }
+
+            if (data.email.length > 30 || data.username.length > 30) {
+                brutal.autod('#ret-tip', '用户名/邮箱超出长度限制');
+                return false;
+            }
+            
+            if (data.email.search('@') < 1) {
+                brutal.autod('#ret-tip', '邮箱格式错误');
+                return false;
+            }
+            brutal.domattr('#register-form', "disabled", true);
+            raj.post({
+                url     : '/user/register',
+                data    : brutal.jsontodata(data),
+                success : function(xr) {
+                    brutal.autod('#ret-tip', JSON.stringify(xr));
+                    if (xr.status == 0) {
+                        brutal.autod('#username', '');
+                        brutal.autod('#passwd', '');
+                    }
+                }
+            });
+
+        }
+    </script>
+</body>
+</html>
