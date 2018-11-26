@@ -27,6 +27,11 @@ return [
         'errinfo' => 'Unknow Error'
     ],
 
+    'ERR_NOT_LOGIN' => [
+        'status'    => 10204,
+        'errinfo'   => 'Error: not login'
+    ],
+
     'ERR_USER_DEF'  => [
         'status'  => 10300,
         'errinfo' => ''

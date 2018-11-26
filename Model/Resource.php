@@ -61,6 +61,7 @@ class Resource {
     public function get($id, $fields = []) {
         if (empty($fields)) {
             $fields = $this->fields;
+            $fields[] = 'rs_content';
         }
         $r = DB::instance()->get($this->table, $fields, ['id' => $id]);
         return $r;

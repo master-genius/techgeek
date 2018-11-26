@@ -68,19 +68,6 @@ class First {
         ]);
     }
 
-    //收藏资源
-    public function store($req, $res) {
-        
-    }
-    
-
-    public function star() {
-    
-    }
-
-    public function unstar() {
-    
-    }
 
     /*
         通过get参数控制列表：
@@ -127,8 +114,10 @@ class First {
             }
 
             if (count($kwd_list) > 0) {
-                $cond['AND']['rs_tilte[~]']    = $kwd_list;
-                $cond['AND']['rs_keywords[~]'] = $kwd_list;        
+                $cond['AND']['OR'] = [
+                    'rs_title[~]'    => $kwd_list,
+                    'rs_keywords[~]' => $kwd_list
+                ];   
             }
         }
         
@@ -152,10 +141,40 @@ class First {
 
         return ApiRet::send($res, [
             'status'    => 0,
-            'rslist'    => (new Resource)->rsList($page, $cond)
+            'rs_list'    => (new Resource)->rsList($page, $cond)
         ]);
 
     }
+
+    public function rsList2($req, $res) {
+        $page = get_data('page');
+        if (!is_numeric($page) || $page <= 0) {
+            $page = 1;
+        }
+
+        $rsobj = new Resource;
+
+        $cond = $this->preRsListCond($req, $res);
+
+        $pi = $rsobj->pageInfo($cond);
+
+        $cond['LIMIT'] = [
+            RS_PAGESIZE * ($page-1), RS_PAGESIZE
+        ];
+
+
+
+        return ApiRet::send($res, [
+            'status'    => 0,
+            'rs_list'    => $rsobj->rsList($page, $cond),
+
+            'total_page' => $pi['total_page'],
+            'total'      => $pi['total'],
+            'cur_page'   => $page
+        ]);
+
+    }
+
 
     public function groupList($req, $res) {
         return ApiRet::send($res, [

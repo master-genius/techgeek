@@ -4,8 +4,29 @@ require ('vendor/autoload.php');
 use \Core\DB;
 use \Core\VCode;
 use \Core\ApiRet;
+use \Middleware\AuthWare;
+use \Middleware\RoleWare;
 
-$app = new \Slim\App;
+
+$co = new \Slim\Container;
+
+$co['APIUser'] = function($co) {
+    return (new \First\First);
+};
+
+$co['APIReader'] = function($co) {
+    return (new \Access\Reader);
+};
+
+$co['APIWriter'] = function($co) {
+    return (new \Access\Writer);
+};
+
+$co['APICreator'] = function($co) {
+    return (new \Access\Creator);
+};
+
+$app = new \Slim\App($co);
 
 /*
  *
@@ -22,12 +43,20 @@ $app = new \Slim\App;
 
 $app->group('/u', function() use ($app) {
 
-    $app->get('/rslist', function($req, $res) {
-        return (new \First\First)->rsList($req, $res);
+    $app->get('/rs/group', function($req, $res) {
+        return $this->APIUser->groupList($req, $res);
+    });
+
+    $app->get('/rs/list', function($req, $res) {
+        return (new \First\First)->rsList2($req, $res);
     });
     
-    $app->get('/rspage', function($req, $res) {
+    $app->get('/rs/page', function($req, $res) {
         return (new \First\First)->rsPageInfo($req, $res);
+    });
+
+    $app->get('/rs/get/{id}', function($req, $res, $args) {
+        return $this->APIUser->get($req, $res, $args['id']);
     });
 
     $app->get('/host', function($req, $res) {
@@ -36,13 +65,13 @@ $app->group('/u', function() use ($app) {
 
 });
 
+
+
 $app->group('/r', function() use ($app) {
 
 
 
-})->add(function ($req, $res, $next){
-
-});
+})->add(new AuthWare);
 
 /*
  * 上传素材，编辑/发布内容
@@ -72,16 +101,12 @@ $app->group('/w', function() use ($app) {
     
     });
 
-    $app->post('', function($req, $res) {
-    
-    });
 
-
-
-
-})->add(function ($req, $res, $next){
-
-});
+})->add(
+    new RoleWare([USER_CREATOR, USER_WRITER])
+)->add(
+    new AuthWare
+);
 
 
 /*
@@ -105,9 +130,11 @@ $app->group('/c', function() use ($app) {
     });
 
 
-})->add(function ($req, $res, $next){
-
-});
+})->add(
+    new RoleWare(USER_CREATOR)
+)->add(
+    new AuthWare
+);
 
 
 $app->run();

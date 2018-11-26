@@ -15,7 +15,8 @@
             "Interfaces\\" : "Interfaces",
             "Model\\"  : "Model",
             "Error\\"  : "Error",
-            "Task\\"   : "Task"
+            "Task\\"   : "Task",
+            "Middleware\\" : "Middleware"
         }
     }
 
