@@ -30,5 +30,4 @@ define('IMAGE_SIZE_LIMIT', 2000000);
 //Creator用户授权Writer用户最大限制
 define('WR_AUTH_LIMIT', 15);
 
-define('SERV_HOST', 'http://127.0.0.1:8192');
 

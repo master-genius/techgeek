@@ -84,6 +84,10 @@ class AuthRedis implements AuthInterface {
         return $u;
     }
 
+    static public function user() {
+        return false;
+    }
+
 
 }
 
