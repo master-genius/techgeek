@@ -18,7 +18,7 @@ var home = function(){
                         
                     </div>
 
-                    <div class="cell small-6 medium-6 large-6" style="height:100%;color:#4a4a4a;text-align:center;">
+                    <div class="cell small-6 medium-6 large-6" style="font-size:86%;height:100%;color:#4a4a4a;text-align:center;">
                         <p>
                             避免一切肤浅，穿透一切复杂。
                             <p style="margin-left : 1.9rem;"> ——— 李小龙</p>
