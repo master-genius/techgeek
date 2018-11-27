@@ -33,6 +33,9 @@
         </div>
     </div>
     <script>
+
+        var host = 'http://w.d.com';
+
         function clear_tip() {
             brutal.autod('#ret-tip', '');
         }
@@ -54,11 +57,15 @@
                 url     : '/u/login',
                 data    : brutal.jsontodata(data),
                 success : function(xr) {
-                    brutal.autod('#ret-tip', JSON.stringify(xr));
+                    if (xr.status == 0) {
+                        location.href = `${host}/u`;
+                    }
+                    
+                    /* brutal.autod('#ret-tip', JSON.stringify(xr));
                     if (xr.status == 0) {
                         brutal.autod('#username', '');
                         brutal.autod('#passwd', '');
-                    }
+                    } */
                 }
             });
 

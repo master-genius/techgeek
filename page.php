@@ -110,7 +110,7 @@ $app->group('/r', function() use ($app) {
     
     });
 
-})->add();
+});
 
 
 
