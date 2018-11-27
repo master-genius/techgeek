@@ -10,14 +10,21 @@ class RoleWare {
 
     public $roles = [];
 
+    public $redirect_url = '';
+
     //roles是允许的用户
-    public function __construct($roles = []) {
-        if (!empty($roles)) {
-            $this->roles = $roles;
+    public function __construct($options = []) {
+        if (isset($options['roles'])) {
+            $this->roles = $options['roles'];
+        }
+
+        if (isset($options['redirect'])) {
+            $this->redirect_url = $options['redirect'];
         }
     }
-    
-    public function __invoke($req, $res, $next) {
+
+    public function rolePass() {
+
         $user = AuthSession::user();
         $pass = false;
         if (is_array($this->roles)) {
@@ -35,7 +42,23 @@ class RoleWare {
             }
         }
 
-        if ($pass === false) {
+        return $pass;
+    }
+
+    public function roleRedirect($req, $res, $next) {
+
+        if ($this->rolePass() === false) {
+            return $res->withRedirect($this->redirect_url, 301);
+        }
+
+        $res = $next($req, $res);
+        return $res;
+    }
+
+
+    public function __invoke($req, $res, $next) {
+
+        if ($this->rolePass() === false) {
             return ApiRet::send(
                 $res,
                 ErrInfo::RetErr('ERR_PERM_DENY')

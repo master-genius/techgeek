@@ -26,6 +26,16 @@ $co['APICreator'] = function($co) {
     return (new \Access\Creator);
 };
 
+//404
+$co['notFoundHandler'] = function() {
+    return function($req, $res) use ($co) {
+        return ApiRet::send($res, [
+            'status'    => -1,
+            'errinfo'   => '404 : Not found'
+        ]);
+    };
+};
+
 $app = new \Slim\App($co);
 
 /*

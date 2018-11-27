@@ -72,7 +72,7 @@ class Serv extends \Task\InitTask {
 
     public function registerVerifyEmail($msg) {
         //$cfg = include (CONFIG_PATH . '/config.php');
-        $verify_url = $this->config['host']
+        $verify_url = $this->config['page_host']
                 . '/v/email-verify?randstr='
                 . $msg['randstr']
                 . '&vstr=' . $msg['email_verify_str'];
@@ -84,7 +84,7 @@ class Serv extends \Task\InitTask {
     }
 
     public function findPasswdEmail($msg) {
-        $verify_url = $this->config['host']
+        $verify_url = $this->config['page_host']
                     . '/v/findpasswd?randstr='
                     . $msg['randstr']
                     . '&vstr=' . $msg['email_verify_str'];
@@ -99,7 +99,7 @@ class Serv extends \Task\InitTask {
     }
 
     public function clearEmail($msg) {
-        $verify_url = $this->config['host']
+        $verify_url = $this->config['page_host']
                     . '/v/clearemail?randstr='
                     . $msg['clear_email_randstr']
                     . 'email=' . $msg['email'];

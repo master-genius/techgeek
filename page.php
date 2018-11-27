@@ -22,6 +22,7 @@ $app = new \Slim\App($co);
 $app->group('/user', function() use ($app) {
     $app->map(['GET', 'POST'], '/register', 
         function($req, $res) {
+            return ApiRet::raw($res, 'Deny!');
             if ($req->isGet()) {
                 return (new \Access\User)->regPage($req, $res);
             } else {
@@ -37,6 +38,10 @@ $app->group('/user', function() use ($app) {
     $app->get('/forget/passwd', function($req, $res) {
         return (new \Access\User)->forgetPasswdPage($req, $res);
     });
+})->add(function($req, $res, $next) {
+    
+    $res = $next($req, $res);
+    return $res;
 });
 
 
@@ -94,6 +99,20 @@ $app->group('', function() use ($app) {
     });
 
 });
+
+
+$app->group('/r', function() use ($app) {
+    $app->get('/userinfo', function($req, $res) {
+    
+    });
+
+    $app->get('', function($req, $res) {
+    
+    });
+
+})->add();
+
+
 
 $app->run();
 
