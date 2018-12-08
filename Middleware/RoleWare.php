@@ -4,7 +4,8 @@ namespace Middleware;
 
 use \Core\ApiRet;
 use \Error\ErrInfo;
-use \Auth\AuthSession;
+use \First\UserSession;
+use \Auth\AuthRedis;
 
 class RoleWare {
 
@@ -24,12 +25,13 @@ class RoleWare {
     }
 
     public function rolePass() {
-
-        $user = AuthSession::user();
+        
+        $user = UserSession::get();
         $pass = false;
+
         if (is_array($this->roles)) {
             if (array_search(
-                $user['info']['user_role'],
+                $user['user_role'],
                 $this->roles) !== false)
             {
                 $pass = true;
@@ -37,7 +39,7 @@ class RoleWare {
         } else if(is_string($this->roles)
             || is_numeric($this->roles) )
         {
-            if ($this->roles == $user['info']['user_role']) {
+            if ($this->roles == $user['user_role']) {
                 $pass = true;
             }
         }

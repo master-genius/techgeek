@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Pub Manage</title>
+    <link rel="stylesheet" href="/static/css/fdxy.min.css">
+    <link rel="stylesheet" href="/static/css/master.css">
+    <script src="/static/js/raj.js"></script>
+    <script src="/static/js/config.js"></script>
+
+    <script src="/static/js/mithril.min.js"></script>
+    <script>
+        function MithTemp(temp) {
+            if (temp instanceof Array) {
+                var tempArr = [];
+                for(var i=0; i<temp.length; i++) {
+                    tempArr.push(MithTemp(temp[i]));
+                }
+                return tempArr;
+            } else if (typeof temp === 'object') {
+                if (temp.data === undefined) {
+                    if (temp.attr === undefined) {
+                        return m(temp.tag);
+                    } else {
+                        return m(temp.tag, temp.attr);
+                    }
+                } else if (temp.data instanceof Array 
+                    || typeof temp.data === 'object')
+                {
+                    if (temp.attr === undefined) {
+                        return m(temp.tag, MithTemp(temp.data));
+                    } else {
+                        return m(temp.tag, temp.attr, MithTemp(temp.data));
+                    }
+                } else {
+                    if (temp.attr === undefined) {
+                        return m(temp.tag, temp.data);
+                    } else {
+                        return m(temp.tag, temp.attr, temp.data);
+                    }
+                }
+            }
+        }
+        //m.template = MithTemp;
+        var _upload_api = 'http://m.d.com';
+        var _api  = 'http://api.d.com';
+        
+    </script>
+    <style>
+        .head-menu{
+            z-index : 2;
+            position: fixed;
+            top:0;
+            background-color: #ffffff;
+            border-bottom: solid 0.05rem #450023;
+            line-height: 2.55rem;
+            min-height: 2.55rem;
+            width:100%;
+            text-align: center;
+        }
+
+        .head-menu a {
+            color : #4a4a6f;
+        }
+        .head-menu-space {
+            margin-top:2.9rem;
+        }
+
+        #sys-common-bar {
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            /* overflow-x: hidden;  */
+            color:#4a4a4a;
+            margin-left: .2rem;
+        }
+
+        .start-func-btn {
+            color:#4a4a4a;
+            margin-left:.3rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="sys-info"></div>
+    <div id="alert-block"></div>
+    <div class="head-menu">
+        <div class="grid-x">
+            <div class="cell small-3 medium-3 large-3" id="start-btn">
+                <!-- <a href="javascript:change_start_win()" style="color:#4a4a4a;margin-left:.3rem;">
+                    功能
+                </a -->>
+            </div>
+            <div class="cell small-9 medium-9 large-9">
+                <span id="sys-common-bar">
+                </span>
+            </div>
+            
+        </div>
+        
+        <div id="start-win" class="hide-start-window" style="border: solid 0.05rem #e5e5e5;">
+            <div class="grid-x">
+                <div class="cell small-12">
+                    <p>
+                        Hey!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="head-menu-space"></div>
+
+    <div class="grid-container" id="main-container">
+
+    </div>
+
+    <div id="post-cover"></div>
+
+    <script>
+
+        var start_temp = {
+            tag  : 'a',
+            attr : {
+                id       : 'start-a-btn',
+                onclick  : function(e) {
+                    var t = document.querySelector('#start-win');
+                    if (t) {
+                        if (t.className === 'hide-start-window') {
+                            t.className = '';
+                            document.querySelector('#start-a-btn').innerHTML = 'X';
+                        } else {
+                            t.className = 'hide-start-window';
+                            document.querySelector('#start-a-btn').innerHTML = '|||';
+                        }
+                    }
+                },
+                class : 'start-func-btn'
+            },
+            data : '|||'
+        };
+
+        var sys_user = document.querySelector('#sys-common-bar');
+        m.render(sys_user, m('span', 'BraveWang') );
+
+        m.render(document.querySelector('#start-btn'), m.template(start_temp));
+        
+        var main = document.querySelector('#main-container');
+
+    </script>
+</body>
+</html>

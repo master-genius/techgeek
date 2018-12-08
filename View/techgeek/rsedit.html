@@ -1,0 +1,318 @@
+<?php include (VIEW_PATH . '/techgeek/header.html'); ?>
+<div class="grid-container" id="main-container">
+    <div class="grid-x">
+        <div class="cell small-1 meidum-1 large-1">&nbsp;</div>
+        <div class="cell small-10 medium-10 large-10">
+
+            <form onsubmit="return false;">
+                <input type="hidden" value="" id="rs-id">
+                <!-- <label for="">标题</label> -->
+                <input type="text" id="rs-title" value="" placeholder="标题" onchange="save_cache('title');">
+
+                <!-- <label for="">摘要</label> -->
+                <input type="text" id="description" value="" placeholder="摘要">
+
+                <div class="grid-x">
+                    <div class="cell small-6 medium-6 large-6">
+                        <label for="">关键词</label>
+                        <input type="text" id="rs-keywords" value="" onchange="save_cache('keywords');">
+                    </div>
+                    <div class="cell small-6 medium-6 large-6">
+                        <label>组</label>
+                        <select name="" id="group-list">
+                            <option value="0">--group--</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="content-editor">
+                    <div id="editor-zone">
+                        <div id="editor-menu" ondblclick="set_fullscreen()" class="editor-menu" style="margin-bottom: 0.5rem;"></div>
+                        <div id="editor-block" class="editor-block" style="height:32rem;width:100%;"></div>
+                    </div>
+                </div>
+                <br>
+                <input type="checkbox" value="1" id="is-publish">发布<br>
+
+                <div style="text-align: center;">
+                    <input type="submit" class="button secondary small" onclick="ajax_rssubmit(1);" value="保存">
+                </div>
+            </form>
+            <div>
+                <p id="api-ret"></p>
+            </div>
+        </div>
+        <div class="cell small-1 meidum-1 large-1">&nbsp;</div>
+    </div>
+</div>
+<div id="media-list-select"></div>
+<script>
+    var is_edit = 0;
+    var rs_id = 0;
+</script>
+<script src="/static/writer/js/rs-media-select.js"></script>
+<script src="/static/js/wangEditor.min.js"></script>
+<script>
+
+    function set_fullscreen() {
+        var ez = document.querySelector('#editor-zone');
+        var eblock  = document.querySelector('#editor-block');
+        if (ez.style.cssText.length > 0) {
+            ez.style.cssText = '';
+            eblock.style.cssText = 'height:32rem;width:100%;';
+        } else {
+            ez.style.cssText = `
+                width:86%;
+                height:90%;
+                left : 7%;
+                top: 0;
+                position:fixed;
+                z-index:100;
+                background-color: #f9f9f9;
+                color: #4a4a4a;
+            `;
+            eblock.style.cssText = 'height:100%;width:100%;';
+        }
+    }
+
+    /*
+        初始化storage存储，
+    */
+    wstg_setItem('content-edit-count', '0');
+
+    var stkey = 'edit';
+
+    var rsid = 0;
+    var pathinfo = location.pathname;
+    var path_split = pathinfo.split('/').filter(p => p.length > 0);
+    if (path_split.length > 0) {
+        rsid = path_split[path_split.length-1];
+    }
+    document.querySelector('#rs-id').value = rsid;
+
+    var E = window.wangEditor;
+    var editor = new E('#editor-menu', '#editor-block');
+    editor.customConfig.uploadImgMaxLength = 1;
+    editor.customConfig.zIndex = 0;
+    editor.customConfig.onchangeTimeout  = 800;
+    editor.customConfig.onchange=function(html){
+        wstg_setItem('content-edit-count', 
+            parseInt(wstg_getItem('content-edit-count')) + 1
+        );
+
+        wstg_setItem(`${stkey}-rs-cache`, form_rs_data(), true);
+
+        wstg_setItem(`${stkey}-init-flag`, parseInt(wstg_getItem(`${stkey}-init-flag`))+1);
+        //内容更改后要检查是不是有图片删除了
+        var imgs = wstg_getItem(`${stkey}-image-list`, true);
+        var new_imgs = [];
+        for(var i=0; i<imgs.length; i++) {
+            if (html.includes(imgs[i]) === false) {
+                continue;
+            }
+            new_imgs.push(imgs[i]);
+        }
+        if (new_imgs.length !== imgs.length) {
+            wstg_setItem(`${stkey}-image-list`,new_imgs, true);
+        }
+        
+        new_imgs = null;
+        imgs = null;
+    }
+
+    editor.customConfig.customUploadImg = function (files, insert) {
+        // files 是 input 中选中的文件列表
+        // insert 是获取图片 url 后，插入到编辑器的方法
+        for (var i=0; i< files.length; i++) {
+            
+            api_upload(files[i], {
+                url : _sysv.uapi + '/w/media/upload',
+                success:function(xr) {
+                    if (xr.status == 0) {
+                        var imgs = wstg_getItem(`${stkey}-image-list`, true);
+                        //push to array if media_url not exist
+                        var img_url = _sysv.image_host + '/' + xr.sub_dir + '/' + xr.filename;
+                        insert(img_url);
+                        if (imgs.indexOf(img_url) == -1) {
+                            imgs.push(img_url);
+                            wstg_setItem(`${stkey}-image-list`, imgs, true);
+                        }
+                        imgs = null;
+                    } else {
+                        //alert(xr.errinfo);
+                        show_system_info(xr.errinfo, false);
+                    }
+                },
+                upload_name : 'image'
+            });
+        }
+        // 上传代码返回结果之后，将图片插入到编辑器中
+        //insert(imgUrl)
+    }
+    // 或者 var editor = new E( document.getElementById('#editor') )
+    editor.customConfig.menus = [
+        'head',  // 标题
+        'bold',  // 粗体
+        'fontSize',  // 字号
+        'fontName',  // 字体
+        'italic',  // 斜体
+        'underline',  // 下划线
+        'strikeThrough',  // 删除线
+        'foreColor',  // 文字颜色
+        'backColor',  // 背景颜色
+        'link',  // 插入链接
+        'list',  // 列表
+        'justify',  // 对齐方式
+        'quote',  // 引用
+        'image',  // 插入图片
+        'table',  // 表格
+        'code',  // 插入代码
+        'undo',  // 撤销
+        'redo'  // 重复
+    ];
+    editor.create();
+
+    function save_cache() {
+        wstg_setItem(`${stkey}-rs-cache`, form_rs_data(), true);
+        wstg_setItem(`${stkey}-init-flag`, parseInt(wstg_getItem(`${stkey}-init-flag`))+1);
+    }
+
+    function form_rs_data() {
+        var pnode = document.getElementById('is-publish');
+
+        var rs_data = {
+            id          : document.querySelector('#rs-id').value,
+            rs_title    : brutal.autod('#rs-title').trim(),
+            rs_content  : editor.txt.html(),
+            rs_keywords : brutal.autod('#rs-keywords'),
+            rs_group    : brutal.selected('#group-list'),
+            //image_list  : wstg_getItem(`${stkey}-image-list`),
+            description : brutal.autod('#description'),
+            is_publish  : (pnode.checked ? 1 : 0)
+        };
+
+        return rs_data;
+    }
+
+    function ajax_rssubmit(sub_type) {
+        var rs_data = form_rs_data();
+        
+        if (rs_data.rs_title.length == 0) {
+            show_system_info('请填写标题', false);
+            return false;
+        }
+
+        var api_name = 'rs_update';
+
+        if (parseInt(wstg_getItem('content-edit-count')) < 1) {
+            delete rs_data.rs_content;
+        }
+
+        _apicall({
+            name : api_name,
+            data : rs_data,
+            success : function (xr) {
+                if (xr.status == 0) {
+                    show_system_info(xr.info);
+                    wstg_setItem('edit-rs-cache', form_rs_data(), true);
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            },
+            except : function(e) {
+                show_system_info('system error');
+            },
+            
+            error : function(err) {
+                show_system_info('network error');
+            }
+        });
+    }
+
+    function init_group_list(group_list) {
+        var html = '';
+        for(var i=0; i<group_list.length; i++) {
+            html += `
+                <option value="${group_list[i].id}">
+                    ${group_list[i].group_name}
+                </option>
+            `;
+        }
+        
+        brutal.html('#group-list', html, true);
+    }
+
+    function set_rs_cache(rs) {
+        document.querySelector('#rs-id').value = rs.id;
+        brutal.autod('#rs-title', rs.rs_title);
+        brutal.autod('#rs-keywords', rs.rs_keywords);
+        brutal.autod('#description', rs.description);
+        editor.txt.html(rs.rs_content);
+        brutal.selected('#group-list', 'set', rs.rs_group);
+        if (parseInt(rs.is_publish) == 1) {
+            document.getElementById('is-publish').checked = true;
+        } else {
+            document.getElementById('is-publish').checked = false;
+        }
+    }
+
+    _media_picked_callback = function(site_url, mid) {
+        //brutal.autod('#rs-cover', site_url);
+        show_cover(site_url);
+        save_cache();
+    }
+
+    _media_content_callback = function(site_url) {
+        editor.cmd.do('insertHTML', `<img src="${site_url}">`);
+    }
+
+    window.onpageshow = function() {
+        var syscom = document.querySelector('#sys-common-bar');
+        if (syscom) {
+            syscom.innerHTML = `
+                <a href="javascript:ajax_rssubmit(0);" style="color:#4a4a4a;">
+                    保存
+                </a>
+            `;
+        }
+        
+        var cache_flag  = false;
+        if (wstg_getItem('edit-init-flag')!==null) {
+            var rs = wstg_getItem('edit-rs-cache',true);
+            if (rs.id == rsid) {
+                init_group_list(wstg_getItem('group-list', true));
+                set_rs_cache(rs);
+                cache_flag = true;
+            }
+        }
+        
+        if (cache_flag === false) {
+            _apicall({
+                name : 'rs_get',
+                args : rsid,
+                success : function (xr) {
+                    if (xr.status == 0) {
+                        init_group_list(xr.group_list);
+                        set_rs_cache(xr.resource);
+
+                        wstg_setItem('edit-init-flag', '1');
+                        //wstg_setItem('edit-rsid', xr.resource.id);
+                        wstg_setItem('edit-rs-cache', xr.resource, true);
+                        //wstg_setItem('edit-image-list', xr.resource.image_list);
+                        wstg_setItem('group-list', xr.group_list, true);
+                    } else {
+                        show_system_info(xr.errinfo);
+                    }
+                },
+                error : function(err) {
+                    show_system_info('network error');
+                },
+                except : function(e) {
+                    show_system_info('system error');
+                }
+            });
+        }
+
+    }
+</script>
+<?php include (VIEW_PATH . '/techgeek/footer.html'); ?>

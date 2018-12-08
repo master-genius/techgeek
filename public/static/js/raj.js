@@ -1,4 +1,4 @@
-var raj = function() {
+var raj = new function() {
     this.ajax = function (xd){
         if(xd.async === undefined){
             xd.async = true;
@@ -138,11 +138,4 @@ var raj = function() {
         }
     };
 
-    return {
-        ajax : ajax,
-        get  : this.get,
-        post : this.post,
-        uploadOne : this.uploadOne,
-        upload : this.upload
-    };
-}();
+};

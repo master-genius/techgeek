@@ -48,6 +48,8 @@ class Users {
         $salt = SSL::createSalt();
         $hash_passwd = SSL::hashPasswd($u['passwd'], $salt);
         
+        //$hash_passwd = password_hash($u['passwd'], PASSWORD_DEFAULT);
+        
         $u['passwd'] = $hash_passwd;
         $u['salt'] = $salt;
         $u['reg_time'] = time();

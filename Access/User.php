@@ -6,7 +6,7 @@ use \Model\Users;
 use \Task\Cli;
 use \Core\ApiRet;
 use \Core\View;
-use \Auth\AuthSession;
+use \Auth\AuthRedis;
 use \Core\SSL;
 
 
@@ -16,6 +16,17 @@ class User {
 
     private $failed_timeout    = 1800;
 
+
+    public function logout($req, $res) {
+        $api_token = post_data('api_token');
+
+        (new AuthSession)->logout();
+
+        return ApiRet::send($res, [
+            'status'    => 0,
+            'info'      => 'ok'
+        ]);
+    }
 
     public function regPage($req, $res) {
         return ApiRet::raw($res, (new View)->page('user/register.html'));
@@ -76,8 +87,9 @@ class User {
 
         unset($u['failed_login']);
         unset($u['failed_login_time']);
+        unset($u['passwd']);
 
-        $token = (new AuthSession)->login($u); 
+        $token = (new AuthRedis)->login($u); 
         
         return ApiRet::send($res, [
             'status'    => 0,
@@ -87,12 +99,6 @@ class User {
     }
 
     public function register($req, $res) {
-        /*
-        if ($this->user['is_login']) {
-            return api_ret($res, ErrInfo::RetErr('Failed: please logout'));
-        }
-
-         */
 
         $filter = [
             'email',
@@ -110,13 +116,35 @@ class User {
             return api_ret($res, ErrInfo::DefErr('Illegal data'));
         }
 
+        $user = new Users;
 
-        $r = (new Users)->add($data);
+        $r = $user->add($data);
         
-        if (!$r) {
+        if (!$r) { 
+            $uchk = $user->get([
+                'email'     => $data['email'],
+                'email_status' => 0
+            ], ['id', 'email', 'salt', 'email_verify_str']);
+
+            if ( $uchk !== false) {
+                $r = [
+                    'randstr'   => $user->genRandStr(),
+                    'email_verify_str'  => $uchk['email_verify_str']
+                ];
+
+                $user->update([
+                    'id' => $uchk['id']
+                ], [
+                    'randstr'   => $r['randstr']
+                ]);
+
+                goto just_send_email;
+            }
+
             return api_ret($res, ErrInfo::RetErr('ERR_BAD_DATA'));
         }
 
+        just_send_email:;
         //注册成功，发送验证邮件
         //验证邮件的发送仅仅是传递到消息队列，由负责此任务的进程处理
         (new Cli)->sendVerifyEmail([
@@ -127,7 +155,7 @@ class User {
 
         return api_ret($res, [
             'status'    => 0,
-            'info'   => 'please verify your email'
+            'info'   => '验证邮件已发送，5分钟内未收到可重新申请'
         ]);
         
     }

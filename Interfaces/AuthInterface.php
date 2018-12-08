@@ -9,6 +9,6 @@ interface AuthInterface {
 
     public function get($id);
 
-    static public function user();
+    public function user();
 }
 

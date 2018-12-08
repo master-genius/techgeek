@@ -57,7 +57,7 @@ function show_system_info(info,st){
     setTimeout(() => {
         brutal.classname("#sys-info",'');
       brutal.autod("#sys-info",'');
-    }, 2560);
+    }, 4200);
 }
 
 function show_alert_block(text) {
@@ -84,6 +84,44 @@ function change_start_win() {
         hide_start_win();
     } else {
         show_start_win();
+    }
+}
+
+function launchFullScreen(element) {
+    if(element.requestFullscreen) {
+        element.requestFullscreen();
+    } else if(element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+    } else if(element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+    } else if(element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+    }
+}
+
+function closeFullScreen() {
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+    } else if (document.webkitCancelFullScreen) {
+        document.webkitCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+    }
+}
+
+function fullScreen(dnode, callback = null) {
+    launchFullScreen(dnode); 
+    if (typeof callback === 'function') {
+        callback();
+    }
+}
+
+function exitFull(callback = null) {
+    closeFullScreen();
+    if (typeof callback === 'function') {
+        callback();
     }
 }
 

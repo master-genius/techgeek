@@ -3,7 +3,8 @@ namespace Middleware;
 
 use \Core\ApiRet;
 use \Error\ErrInfo;
-use \Auth\AuthSession;
+use \Auth\AuthRedis;
+use \First\UserSession;
 
 class AuthWare {
 
@@ -19,13 +20,11 @@ class AuthWare {
 
     public function authRedirect($req, $res, $next) {
         $pass = true;
-        if (AuthSession::user() === false) {
+        $user = (new AuthRedis)->user();
+        if ($user === false) {
             $pass = false;
         } else {
-            $token = $req->getCookieParam('api_token', '');
-            if (empty($token) || $token !== AuthSession::user()['token']) {
-                $pass = false;
-            }
+            UserSession::set($user);
         }
 
         if ($pass === false) {
@@ -37,22 +36,15 @@ class AuthWare {
     }
     
     public function __invoke($req, $res, $next) {
-        if (AuthSession::user() === false) {
+        $user = (new AuthRedis)->user();
+        if ($user === false) {
             return ApiRet::send(
                 $res,
                 ErrInfo::RetErr('ERR_NOT_LOGIN')
             );
-        } else {
-            $token = $req->getCookieParam('api_token', '');
-            if (empty($token) || $token !== AuthSession::user()['token']) {
-                return ApiRet::send(
-                    $res,
-                    ErrInfo::RetErr('ERR_PERM_DENY')
-                );
-            
-            }
         }
 
+        UserSession::set($user);
         $res = $next($req, $next);
         return $res;
     }

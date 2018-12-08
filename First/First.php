@@ -5,9 +5,9 @@ use \Model\Resource;
 use \Model\Group;
 use \Model\Users;
 use \Error\ErrInfo;
-//use \First\UserSession;
+use \First\UserSession;
 use \Core\ApiRet;
-use \Auth\AuthSession;
+//use \Auth\AuthSession;
 
 
 class First {
@@ -38,6 +38,7 @@ class First {
 
 
     public function __construct() {
+        /*
         $user = AuthSession::user();
         if (false !== $user) {
             $this->user['is_login'] = true;
@@ -48,6 +49,18 @@ class First {
                 $this->user['role']     = $this->role_map[$user['info']['user_role']];
             }
         }
+         */
+        $user = UserSession::get();
+        if (false !== $user) {
+            $this->user['is_login'] = true;
+            $this->user['username'] = $user['username'];
+            $this->user['email']    = $user['email'];
+            $this->user['id']       = $user['id'];
+            if (isset( $this->role_map[ $user['user_role'] ] ) ) {
+                $this->user['role']     = $this->role_map[$user['user_role']];
+            }
+        }
+
     }
 
     /*

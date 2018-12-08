@@ -13,9 +13,16 @@
         <div class="grid-x" style="margin-top:1.2rem;">
             <div class="cell small-1 medium-2 large-3">&nbsp;</div>
             <div class="cell small-10 medium-8 large-6">
-                <p style="line-height: 3.6rem;">
-                    <h3>Login</h3>
-                </p>
+                    <div class="grid-x">
+                        <div class="cell small-6">
+                            <h4>用户登录</h4>
+                        </div>
+                        <div class="cell small-6">
+                            <a href="/user/register" style="float:right;color:#4a4a4a;">
+                                注册
+                            </a>
+                        </div>
+                    </div>
 
                 <form onsubmit="return false;">
                     <label>用户名</label>
@@ -24,9 +31,11 @@
                     <label>密码</label>
                     <input type="password" value="" id="passwd" required oninput="clear_tip();">
 
-                    <input type="submit" class="button small success" onclick="ajax_login()">
+                    <input type="submit" class="button small success" onclick="ajax_login()" value="登录">
                 </form>
-                <a href="/user/forget/passwd">忘记密码 </a>
+                <a href="/user/forget/passwd" style="font-size:86%;color:#453456;">
+                    忘记密码
+                </a>
                 <p id="ret-tip"></p>
             </div>
             <div class="cell small-1 medium-2 large-3">&nbsp;</div>
@@ -35,6 +44,7 @@
     <script>
 
         var host = 'http://w.d.com';
+        var user_host = `http://user.d.com`;
 
         function clear_tip() {
             brutal.autod('#ret-tip', '');
@@ -54,18 +64,15 @@
             }
 
             raj.post({
-                url     : '/u/login',
+                url     : `${user_host}/user/login`,
                 data    : brutal.jsontodata(data),
                 success : function(xr) {
                     if (xr.status == 0) {
-                        location.href = `${host}/u`;
+                        document.cookie = `api_token=${xr.token}; path=/; domain=.d.com`;
+                        location.href = `${host}/`;
+                    } else {
+                        brutal.autod('#ret-tip', xr.errinfo);
                     }
-                    
-                    /* brutal.autod('#ret-tip', JSON.stringify(xr));
-                    if (xr.status == 0) {
-                        brutal.autod('#username', '');
-                        brutal.autod('#passwd', '');
-                    } */
                 }
             });
 

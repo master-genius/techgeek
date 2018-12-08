@@ -28,6 +28,6 @@ define('USER_IMAGE_LIMIT', 2000);
 define('IMAGE_SIZE_LIMIT', 2000000);
 
 //Creator用户授权Writer用户最大限制
-define('WR_AUTH_LIMIT', 15);
+define('WR_AUTH_LIMIT', 20);
 
 

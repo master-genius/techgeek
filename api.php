@@ -30,7 +30,7 @@ $co['APICreator'] = function($co) {
 $co['notFoundHandler'] = function() {
     return function($req, $res) use ($co) {
         return ApiRet::send($res, [
-            'status'    => -1,
+            'status'    => 404,
             'errinfo'   => '404 : Not found'
         ]);
     };
@@ -79,6 +79,9 @@ $app->group('/u', function() use ($app) {
 
 $app->group('/r', function() use ($app) {
 
+    $app->get('/logout', function($req, $res) {
+        return ApiRet::send($res, $this->APIUser->logout($req, $res));
+    });
 
 
 })->add(new AuthWare);

@@ -2,8 +2,10 @@
 namespace Auth;
 
 use \Core\SSL;
+use \First\UserSession;
 
-class AuthRedis implements AuthInterface {
+
+class AuthRedis implements \Interfaces\AuthInterface {
 
     private $config = [
         'host'      => '127.0.0.1',
@@ -84,10 +86,10 @@ class AuthRedis implements AuthInterface {
         return $u;
     }
 
-    static public function user() {
-        return false;
+    public function user() {
+        return $this->get(get_data('api_token'));
+        //return false;
     }
-
 
 }
 

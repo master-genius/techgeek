@@ -1,0 +1,346 @@
+<?php include (VIEW_PATH . '/techgeek/header.html'); ?>
+<div class="grid-container" id="main-container">
+    <div class="grid-x">
+        <div class="cell small-1 meidum-1 large-1">&nbsp;</div>
+        <div class="cell small-10 medium-10 large-10">
+
+            <form onsubmit="return false;">
+                <p id="resource-cover">
+                    <label for="CoverFileUpload" class="button">封面图片</label>
+                    <input type="file" id="CoverFileUpload" class="show-for-sr" onchange="ajax_upload_cover(this)">
+                    <button class="button hollow alert" onclick="select_from_media_list()">
+                        从素材库选择
+                    </button>
+                </p>
+                <input type="hidden" value="" id="rs-cover">
+                <!-- <label for="">标题</label> -->
+                <input type="text" id="rs-title" value="" placeholder="标题" onchange="save_cache('title');" required>
+
+                <!-- <label for="">摘要</label> -->
+                <input type="text" id="description" value="" placeholder="摘要">
+
+                <div class="grid-x">
+                    <div class="cell small-6 medium-6 large-6">
+                        <label for="">关键词</label>
+                        <input type="text" id="rs-keywords" value="" onchange="save_cache('keywords');">
+                    </div>
+                    <div class="cell small-6 medium-6 large-6">
+                        <label>组</label>
+                        <select name="" id="group-list">
+                            <option value="0">--group--</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="content-editor">
+                    <div id="editor-zone">
+                        <div id="editor-menu" class="editor-menu" style="margin-bottom: 0.5rem;"></div>
+                        <div id="editor-block" class="editor-block" style="height:32rem;width:100%;">
+                        </div>
+                    </div>
+                    <div id="editor" style="height:23%;width:100%;">
+                    </div>
+                </div>
+                <br>
+
+                <input type="submit" class="button secondary small" onclick="ajax_rssubmit(1);" value="保存并发布">
+            </form>
+            <div>
+                <p id="api-ret"></p>
+            </div>
+        </div>
+        <div class="cell small-1 meidum-1 large-1">&nbsp;</div>
+    </div>
+</div>
+<div id="media-list-select"></div>
+<script>
+    var is_edit = 0;
+    var rs_id = 0;
+</script>
+<script src="/static/writer/js/rs-media-select.js"></script>
+<script src="/static/js/wangEditor.min.js"></script>
+<script>
+
+    function set_editor_fullscreen() {
+        document.querySelector('#content-editor').style.cssText = `
+            position: fixed;
+            z-index: 99;
+            background-color: #efefef;
+            margin: auto;
+            top: 0;
+            left: 10%;
+            width:100%;
+        `;
+        document.querySelector('#editor').style.cssText = 'height:80%;width:50%;';
+    }
+
+    /*
+        初始化storage存储，用于图片的列表记录
+    */
+    var stkey = 'add';
+
+    if (!is_edit && wstg_getItem('add-init-flag') === null) {
+        wstg_setItem('add-init-flag', '0');
+        wstg_setItem('add-rs-cache', '');
+        wstg_setItem('add-image-list', '[]');
+    }
+
+    var E = window.wangEditor;
+    var editor = new E('#editor-menu', '#editor-block');
+    editor.customConfig.uploadImgMaxLength = 1;
+    editor.customConfig.zIndex = 0;
+    editor.customConfig.onchangeTimeout  = 800;
+    editor.customConfig.onchange=function(html){
+        wstg_setItem(`${stkey}-rs-cache`, form_rs_data(), true);
+
+        wstg_setItem(`${stkey}-init-flag`, parseInt(wstg_getItem(`${stkey}-init-flag`))+1);
+        //内容更改后要检查是不是有图片删除了
+        var imgs = wstg_getItem(`${stkey}-image-list`, true);
+        var new_imgs = [];
+        for(var i=0; i<imgs.length; i++) {
+            if (html.includes(imgs[i]) === false) {
+                continue;
+            }
+            new_imgs.push(imgs[i]);
+        }
+        if (new_imgs.length !== imgs.length) {
+            wstg_setItem(`${stkey}-image-list`,new_imgs, true);
+        }
+        
+        new_imgs = null;
+        imgs = null;
+    }
+
+    editor.customConfig.customUploadImg = function (files, insert) {
+        // files 是 input 中选中的文件列表
+        // insert 是获取图片 url 后，插入到编辑器的方法
+        for (var i=0; i< files.length; i++) {
+            
+            api_upload(files[i], {
+                url : _sysv.uapi + '/w/media/upload',
+                success:function(xr) {
+                    if (xr.status == 0) {
+                        var imgs = wstg_getItem(`${stkey}-image-list`, true);
+                        //push to array if media_url not exist
+                        var img_url = _sysv.image_host + '/' + xr.sub_dir + '/' + xr.filename;
+                        insert(img_url);
+                        if (imgs.indexOf(img_url) == -1) {
+                            imgs.push(img_url);
+                            wstg_setItem(`${stkey}-image-list`, imgs, true);
+                        }
+                        imgs = null;
+                    } else {
+                        //alert(xr.errinfo);
+                        show_system_info(xr.errinfo, false);
+                    }
+                },
+                upload_name : 'image'
+            });
+        }
+        // 上传代码返回结果之后，将图片插入到编辑器中
+        //insert(imgUrl)
+    }
+    // 或者 var editor = new E( document.getElementById('#editor') )
+    editor.customConfig.menus = [
+        'head',  // 标题
+        'bold',  // 粗体
+        'fontSize',  // 字号
+        'fontName',  // 字体
+        'italic',  // 斜体
+        'underline',  // 下划线
+        'strikeThrough',  // 删除线
+        'foreColor',  // 文字颜色
+        'backColor',  // 背景颜色
+        'link',  // 插入链接
+        'list',  // 列表
+        'justify',  // 对齐方式
+        'quote',  // 引用
+        'image',  // 插入图片
+        'table',  // 表格
+        'code',  // 插入代码
+        'undo',  // 撤销
+        'redo'  // 重复
+    ];
+    editor.create();
+
+    function show_cover(url) {
+        brutal.autod('#resource-cover', `
+            <img src="${url}" style="width:auto; height:auto;">
+            <h3 onclick="remove_cover()">X</h3>
+        `);
+        brutal.autod('#rs-cover', url);
+    }
+
+    function ajax_upload_cover(file) {
+        api_upload(file.files[0], {
+            url : _sysv.api + `/master/upload/media`,
+            upload_name : 'media_upload',
+            success : function(xr) {
+                if (xr.status == 0) {
+                    brutal.autod('#resource-cover', `
+                        <img src="${xr.media_url}" style="width:auto; height:auto;">
+                        <h3 onclick="remove_cover()">X</h3>
+                    `);
+                    brutal.autod('#rs-cover', xr.media_url);
+                    save_cache();
+                } else {
+                    show_system_info(xr.errinfo);
+                }
+            }
+
+        });
+    }
+
+    function remove_cover() {
+        brutal.autod('#rs-cover', '');
+        brutal.autod('#resource-cover', `
+            <label for="CoverFileUpload" class="button">封面图片</label>
+            <input type="file" id="CoverFileUpload" class="show-for-sr" onchange="ajax_upload_cover(this)">
+            <button class="button hollow alert" onclick="select_from_media_list()">
+                从素材库选择
+            </button>
+        `);
+    }
+
+    function save_cache() {
+        wstg_setItem(`${stkey}-rs-cache`, form_rs_data(), true);
+        wstg_setItem(`${stkey}-init-flag`, parseInt(wstg_getItem(`${stkey}-init-flag`))+1);
+    }
+
+    function form_rs_data() {
+        var rs_data = {
+            rs_cover    : brutal.autod('#rs-cover'),
+            rs_title    : brutal.autod('#rs-title'),
+            rs_content  : editor.txt.html(),
+            rs_keywords : brutal.autod('#rs-keywords'),
+            rs_group    : brutal.selected('#group-list'),
+            image_list  : wstg_getItem(`${stkey}-image-list`),
+            description : brutal.autod('#description')
+        };
+        return rs_data;
+    }
+
+    function clear_form_data() {
+        remove_cover();
+        brutal.autod('#rs-title', '');
+        brutal.autod('#rs-keywords', '');
+        brutal.autod('#description', '');
+        editor.txt.html('');
+        wstg_setItem(`${stkey}-init-flag`, '0');
+        wstg_setItem(`${stkey}-image-list`, '[]');
+        wstg_setItem(`${stkey}-rs-cache`, '{}');
+    }
+
+    function ajax_rssubmit(sub_type) {
+        var rs_data = form_rs_data();
+
+        var api_name = 'rs_add';
+        if (sub_type) {
+            api_name = 'rs_addpub';
+        }
+
+        _apicall({
+            name : api_name,
+            data : rs_data,
+            success : function (xr) {
+                if (xr.status == 0) {
+                    show_system_info(is_edit?xr.info:`success, ID: ${xr.id}`);
+                    if (!is_edit) {
+                        clear_form_data();
+                    } else {
+                        wstg_setItem('edit-rs-cache', form_rs_data(), true);
+                    }
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            },
+            except : function(e) {
+                show_system_info('system error');
+            },
+            
+            error : function(err) {
+                show_system_info('network error');
+            }
+        });
+    }
+
+    function init_group_list(group_list) {
+        var html = '';
+        for(var i=0; i<group_list.length; i++) {
+            html += `
+                <option value="${group_list[i].id}">
+                    ${group_list[i].group_name}
+                </option>
+            `;
+        }
+        
+        brutal.html('#group-list', html, true);
+    }
+
+    function set_rs_cache(rs) {
+        brutal.autod('#rs-title', rs.rs_title);
+        brutal.autod('#rs-keywords', rs.rs_keywords);
+        brutal.autod('#description', rs.description);
+        editor.txt.html(rs.rs_content);
+        brutal.selected('#group-list', 'set', rs.rs_group);
+        if (rs.rs_cover !== '') {
+            brutal.autod('#rs-cover', rs.rs_cover);
+            brutal.autod('#resource-cover', `
+                <img src="${rs.rs_cover}">
+                <h3 onclick="remove_cover()">X</h3>
+            `);
+        }
+    }
+
+    _media_picked_callback = function(site_url, mid) {
+        //brutal.autod('#rs-cover', site_url);
+        show_cover(site_url);
+        save_cache();
+    }
+
+    _media_content_callback = function(site_url) {
+        editor.cmd.do('insertHTML', `<img src="${site_url}">`);
+    }
+
+    window.onpageshow = function() {
+        var syscom = document.querySelector('#sys-common-bar');
+        if (syscom) {
+            syscom.innerHTML = `
+                <a href="javascript:ajax_rssubmit(0);" style="color:#4a4a4a;">
+                    保存
+                </a>
+            `;
+        }
+        if (wstg_getItem('add-init-flag')!==null) {
+            var count = parseInt(wstg_getItem('add-init-flag'));
+            if (count > 0) {
+                var rs = wstg_getItem('add-rs-cache',true);
+                set_rs_cache(rs);
+            }
+        }
+        
+        var glist = wstg_getItem('group-list', true);
+        if (glist !== undefined &&glist !== null) {
+            init_group_list(glist);
+        }  else {
+            _apicall({
+                name  : 'group_list',
+                success : function(xr) {
+                    if (xr.status == 0) {
+                        init_group_list(xr.group_list);
+                        wstg_setItem('group-list', xr.group_list, true);
+                    } else {
+                        show_system_info(xr.errinfo);
+                    }
+                },
+
+                error : function(err) {
+
+                }
+
+            });
+            
+        }
+    }
+</script>
+<?php include (VIEW_PATH . '/writer/footer.html'); ?>

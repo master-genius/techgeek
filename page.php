@@ -5,6 +5,8 @@ use \Core\DB;
 use \Core\VCode;
 use \Core\ApiRet;
 use \Core\View;
+use \Middleware\RoleWare;
+use \Middleware\AuthWare;
 
 $co = new \Slim\Container;
 
@@ -20,16 +22,9 @@ $co['Config'] = function($co) {
 $app = new \Slim\App($co);
 
 $app->group('/user', function() use ($app) {
-    $app->map(['GET', 'POST'], '/register', 
-        function($req, $res) {
-            return ApiRet::raw($res, 'Deny!');
-            if ($req->isGet()) {
-                return (new \Access\User)->regPage($req, $res);
-            } else {
-                return (new \Access\User)->register($req, $res);
-            }
-        }
-    );
+    $app->get('/register', function($req, $res) {
+        return (new \Access\User)->regPage($req, $res);
+    });
 
     $app->get('/login', function($req, $res) {
         return ApiRet::raw($res, (new \Core\View)->page('user/login.html'));
@@ -59,9 +54,6 @@ $app->group('/v', function() use ($app) {
         return (new \Access\User)->findPasswdPage($req, $res);
     });
 
-    $app->post('/reset/passwd', function($req, $res) {
-        return (new \Access\User)->findPasswd($req, $res);
-    });
 
 
 });
@@ -82,37 +74,48 @@ $app->group('/v', function() use ($app) {
 $app->group('', function() use ($app) {
 
     $app->get('[/]', function($req, $res) {
-        $page = $this->View->page('first/index.html', $this->Config);
+        $page = $this->View->page('techgeek/index.html', $this->Config);
         return ApiRet::raw($res, $page);
     });
 
-    $app->post('/login', function($req, $res) {
-        return (new \Access\User)->login($req, $res);
+});
+
+$app->group('/w', function() use ($app) {
+
+    $app->get('[/]', function($req, $res) {
+        $page = $this->View->page('techgeek/home.html');
+        return ApiRet::raw($res, $page);
     });
 
-    $app->get('/rslist', function($req, $res) {
-        return (new \First\First)->rsList($req, $res);
+    $app->get('/rs/add', function($req, $res) {
+        $page = $this->View->page('techgeek/rsadd.html');
+        return ApiRet::raw($res, $page);
     });
-    
-    $app->get('/rspage', function($req, $res) {
-        return (new \First\First)->rsPageInfo($req, $res);
+
+    $app->get('/rs/edit/{id}', function($req, $res) {
+        $page = $this->View->page('techgeek/rsedit.html');
+        return ApiRet::raw($res, $page);
+    });
+
+    $app->get('/rs/wlist', function($req, $res) {
+        $page = $this->View->page('techgeek/rslist.html');
+        return ApiRet::raw($res, $page);
+    });
+
+    $app->get('/media/list', function($req, $res) {
+        $page = $this->View->page('techgeek/media.html');
+        return ApiRet::raw($res, $page);
     });
 
 });
 
-
-$app->group('/r', function() use ($app) {
-    $app->get('/userinfo', function($req, $res) {
+$app->group('/c', function() use ($app) {
     
-    });
-
-    $app->get('', function($req, $res) {
+    $app->get('/wrlist', function($req, $res) {
     
     });
 
 });
-
-
 
 $app->run();
 

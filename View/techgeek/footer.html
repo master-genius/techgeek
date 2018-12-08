@@ -1,0 +1,28 @@
+<div id="post-cover"></div>
+<script>
+    function set_user_menu(m) {
+        var menu_html = '';
+
+        for (var i=0; i < m.length; i++) {
+            menu_html += `
+                <div class="cell small-12 medium-6 large-4">
+                    <a href="${m[i].url}">${m[i].name}</a>
+                </div>
+            `;
+        }
+        document.querySelector('#start-menu').innerHTML += menu_html;
+    }
+    _apicall({
+        name : 'get_user_menu',
+        success : function(xr) {
+            if (xr.status == 0) {
+                set_user_menu(xr.menu);
+            } else {
+                show_system_info(xr.errinfo);
+            }
+        }
+    });
+
+</script>
+</body>
+</html>
