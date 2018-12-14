@@ -29,12 +29,6 @@ var api_table = {
         args : 'must'
     },
 
-    media_wxupload : {
-        url : _sysv.api + '/master/media/wxupload',
-        method : 'get',
-        args : 'must'
-    },
-
     rs_get : {
         url : _sysv.api + '/w/rs/get',
         method : 'get',
@@ -71,11 +65,12 @@ var api_table = {
         args : 'none'
     },
 
-    rs_last_log : {
-        url : _sysv.api + '/master/rs/lastlog',
+    myinfo : {
+        url : _sysv.api + '/r/userinfo',
         method : 'get',
-        args : 'must'
-    },
+        args : 'none'
+    }
+
 };
 
 function show_login_block() {

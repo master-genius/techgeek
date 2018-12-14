@@ -1,5 +1,19 @@
 <?php include (VIEW_PATH . '/techgeek/header.html'); ?>
 
+<div class="full-container">
+    <div class="grid-x">
+        <div class="cell small-12" id="user-info">
 
+        </div>
+    </div>
+</div>
+<script>
+    _apicall({
+        name : 'myinfo',
+        success : function(xr) {
+            document.querySelector('#user-info').innerHTML = JSON.stringify(xr.userinfo);
+        }
+    });
+</script>
 
 <?php include (VIEW_PATH . '/techgeek/footer.html'); ?>

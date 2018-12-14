@@ -44,6 +44,8 @@
         }
         m.template = MithTemp;
     </script>
+    <script src="/static/techgeek/js/component.js"></script>
+    <script src="/static/techgeek/js/wstorage.js"></script>
     <style>
         .head-menu{
             z-index : 2;
@@ -77,8 +79,17 @@
             margin-left:.3rem;
         }
 
+        #main-menu a {
+            color : #4a4a4a;
+            font-size : 101%;
+        }
+
+        body {
+            font-family: sans-serif, "Courier New", "Helvetica Neue",Helvetica,Roboto,Arial;
+        };
     </style>
 </head>
+
 <body>
     <div id="sys-info"></div>
     <div id="alert-block"></div>
@@ -95,21 +106,20 @@
         </div>
         
         <div id="start-win" class="hide-start-window" style="border: solid 0.05rem #e5e5e5;">
-            <div class="grid-x">
-                <div class="cell small-12">
-                    <p>
-                        Hey!
-                    </p>
-                    <a href="/w/rs/add" target="_blank">
-                        创作空间
-                    </a>
-                </div>
-            </div>
+                <div class="grid-container">
+                        <div class="grid-x">
+                            <div class="cell small-12">
+                                <ul class="menu" id="main-menu">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>        
         </div>
     </div>
     <div class="head-menu-space"></div>
 
-    <div class="grid-container" id="main-container">
+    
+    <div class="full-container" id="main-container">
 
     </div>
     <div class="grid-container">
@@ -120,7 +130,68 @@
         </div>
     </div>
 
-    <div id="post-cover"></div>
+    <script>
+        document.querySelector('#start-win').addEventListener('click', function(e){
+            //console.log(e);
+            var em = document.createEvent('MouseEvent');
+            em.initEvent('click', true, true);
+            document.querySelector('#start-a-btn').dispatchEvent(em);
+        });
+
+        function ClearListSearch() {
+            var knode = document.querySelector('#keywords');
+            knode.value = '';
+            wo.set('list-kwd', '');
+            wo.set('list-page', 1);
+            ApiGetList();
+        }
+
+        function ListSearch() {
+            var knode = document.querySelector('#keywords');
+            var kwd = knode.value.trim();
+            wo.set('list-kwd', kwd);
+            wo.set('list-page', 1);
+            ApiGetList();
+        }
+
+        function ApiGetList() {
+            var page = wo.get('list-page');
+            var kwd = wo.get('list-kwd');
+
+            var args = '?page=' + page;
+            if (kwd !== null && kwd.length > 0) {
+                args += `&kwd=${kwd}`;
+            }
+
+            raj.get({
+                url : `${_sysvar.apihost}/u/rs/list${args}`,
+                success : function (xr) {
+                    if (xr.total_page > 0) {
+                        ComSetPageInfo(xr.cur_page, xr.total_page);
+                    }
+
+                    if (xr.status == 0) {
+                        var html = '';
+                        for (var i=0; i<xr.rs_list.length;i++) {
+                            html += `
+                                <div class="grid-x" style="margin-top:1.5rem;">
+                                    <div class="cell small-12">
+                                        <a href="#!/resource/${xr.rs_list[i].id}" style="color:#4a4a4a;">
+                                            <h5>${xr.rs_list[i].rs_title}</h5>
+                                            <span style="font-size:86%;color:#cecece;">
+                                                ${xr.rs_list[i].description}
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        document.querySelector('#resource-list').innerHTML = html;
+                    }
+                }
+            });
+        }
+    </script>
 
     <script>
 
@@ -145,88 +216,195 @@
             data : '|||'
         };
 
-        var search_form = {
-            tag  : 'form',
+        var sysbar = document.querySelector('#sys-common-bar');
 
-            attr : {
-                onsubmit : function() {
-                    return false;
-                }
-            },
-
-            data : [
-                {
-                    tag   : 'p',
-                    attr : {
-                        id  : 'input-show',
-                    },
-                    data : ''
-                },
-                {
-                    tag : 'input',
-                    attr : {
-                        id     : 'search-kwd',
-                        type   : 'text',
-                        placeholder : 'Keywords',
-                        oninput : function(t) {
-                            document.querySelector('#input-show').innerHTML = t.target.value;
-                        }
-                    }
-                },
-                {
-                    tag : 'input',
-                    attr : {
-                        id     : 'search-submit',
-                        type   : 'button',
-                        class  : 'button secondary small',
-                        value  : 'Submit'
-                    }
-                }
-            ]
-        };
-
-        var search_temp = {
-                tag   : 'div',
-                attr  : {
-                    class : 'grid-x'
-                },
-                data : [
-                    {
-                        tag  : 'div',
-                        attr : {
-                            class : 'cell small-1 medium-2 large-3'
-                        },
-                        data : ' '
-                    },
-                    {
-                        tag  : 'div',
-                        attr : {
-                            class : 'cell small-10 medium-8 large-6'
-                        },
-                        data : search_form
-                    },
-                    {
-                        tag  : 'div',
-                        attr : {
-                            class : 'cell small-1 medium-2 large-3'
-                        },
-                        data : ' '
-                    },
-                ]
-        };
-
-        var sys_user = document.querySelector('#sys-common-bar');
-        m.render(sys_user, m('span', 'BraveWang') );
+        /* m.render(sysbar, m('span', 'BraveWang') );
+        setTimeout(function() {
+            m.render(sysbar, m('span', 'Brave') );
+        }, 180); */
 
         m.render(document.querySelector('#start-btn'), m.template(start_temp));
         
         var main = document.querySelector('#main-container');
-        m.render(main, MithTemp(search_temp));
+        var mainMenu = document.querySelector('#main-menu');
 
-        setTimeout(function(){
-            document.querySelector('#search-kwd').value = document.cookie;
-        }, 1000);
+        var menuList = {
+            view : function() {
+                return [
+                    m(
+                        'li', 
+                        m('a[href=/]', {
+                            oncreate : m.route.link,
+                            onclick : function() {
+
+                            }
+                        }, 'Home')
+                    ),
+
+                    m(
+                        'li', 
+                        m('a[href=/list]', {
+                            oncreate : m.route.link
+                        }, 'List')
+                    )
+                ];
+            }
+        };
         
+        m.render(mainMenu, [
+                    m(
+                        'li', 
+                        m('a[href=/]', {
+                            oncreate : m.route.link,
+                            onclick : function() {
+                                m.route.set('/');
+                            }
+                        }, '首页')
+                    ),
+
+                    m(
+                        'li', 
+                        m('a[href=/list]', {
+                            oncreate : m.route.link,
+                            onclick : function() {
+                                m.route.set('/list');
+                            }
+                        }, '列表')
+                    )
+                ]);
+
+
+        var Home = {
+            oncreate : function(vnode) {
+                m.render(sysbar, m('span', '首页'));
+            },
+            view : function() {
+                return m('div', {
+                        class : 'grid-x'
+                    }, 
+                    m('div', {
+                        class : 'cell small-12'
+                    }, 'Welcome')
+                );
+            }
+        };
+        
+
+        var List = {
+            oncreate : function() {
+                m.render(sysbar, m('span', '列表'));
+
+                ListPageTemp('#search-block');
+                if (wo.get('list-kwd')) {
+                    document.querySelector('#keywords').value = wo.get('list-kwd');
+                }
+
+                var fp = document.querySelector('#footer-block');
+                if (!fp) {
+                    return false;
+                }
+
+                fp.innerHTML = PageTemp();
+                
+                ComPageEvent((page) => {
+                    wo.set('list-page', page);
+                    ApiGetList();
+                });
+
+                if (wo.get('list-page') === null) {
+                    wo.set('list-page', 1);
+                }
+                ApiGetList();
+            },
+            view : function() {
+                //return m('div', {id:"resource-list"}, 'Getting List...');
+                //return MithTemp(search_temp);
+                return m('div', {
+                    class : 'grid-x'
+                }, [
+                    m('div', {class : 'cell medium-2 large-3'}, ''),
+                    
+                    m('div', {
+                        class : 'cell small-12 medium-8 large-6',
+                        
+                    }, [
+                        m('div', {id : 'search-block'},''),
+                        m('div', {id : 'resource-list'},''),
+                        m('div', {
+                            style : 'min-height:2.7rem;'
+                        }, ''),
+                        m('div', {
+                            id : 'footer-block',
+                            style : 'z-index:2;position:fixed;width:75%;left:12.5%;bottom:0;background-color:#f2f2f2;'
+                        },''),
+                    ]),
+
+                    m('div', {class : 'cell medium-2 large-3'}, '')
+                ]);
+
+                
+            }
+        };
+
+        var Resource = {
+
+            oncreate : function(vnode) {
+                m.render(sysbar, m('span', '内容'));
+                var id = vnode.attrs.rsid;
+                raj.get({
+                    url : _sysvar.apihost + '/u/rs/get/'+id,
+                    success : function(xr) {
+                        if (xr.status == 0) {
+                            m.render(sysbar, m('span', `${xr.resource.rs_title}`));
+                            var r = document.querySelector('#resource-content');
+                            if (r === null) {
+                                return ;
+                            }
+                            var t = new Date(parseInt(xr.resource.update_time) * 1000);
+                            r.innerHTML = `
+                                <h4>${xr.resource.rs_title}</h4>
+                                <div style="border-top:solid 0.05rem #e2e2e2;">
+                                    <p style="font-size:86%;">
+                                        ${t.toLocaleString()}; ${xr.resource.rs_keywords}
+                                    </p>
+                                    <p>
+                                        ${xr.resource.rs_content}
+                                    </p>
+                                </div>
+                                <p>&nbsp;</p>
+                            `;
+                        }
+                    }
+
+                });
+            },
+
+            view : function(vnode) {
+                return m('div', {
+                    class : 'grid-x'
+                    }, [
+                        m('div', {
+                            class : 'cell medium-2 large-3'
+                        }),
+                        m('div', {
+                            class : 'cell small-12 medium-8 large-6',
+                            id : 'resource-content',
+                            style : 'padding-left:0.1rem;padding-right:0.1rem;'
+                        }),
+                        m('div', {
+                            class : 'cell medium-2 large-3'
+                        }),
+                    ]
+                );
+            }
+        };
+
+        m.route(main, '/', {
+            '/'     : Home,
+            '/list' : List,
+            '/resource/:rsid' : Resource
+        });
+
     </script>
 </body>
 </html>
