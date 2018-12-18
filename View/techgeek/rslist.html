@@ -206,7 +206,7 @@
     function ajax_rs_delall() {
         var idlist = brutal.checked('.rs-check','list', 'check');
         api_post({
-            url : _sysv.host + '/master/rs/delete/all',
+            url : _sysv.api + '/w/rs/deletelist',
             data : `idlist=${encodeURIComponent(JSON.stringify(idlist))}`,
             success : function(xr) {
                 hide_alert_block();

@@ -106,14 +106,14 @@
         </div>
         
         <div id="start-win" class="hide-start-window" style="border: solid 0.05rem #e5e5e5;">
-                <div class="grid-container">
-                        <div class="grid-x">
-                            <div class="cell small-12">
-                                <ul class="menu" id="main-menu">
-                                </ul>
-                            </div>
+            <div class="grid-container">
+                <div class="grid-x">
+                    <div class="cell small-12">
+                        <div class="grid-x" id="main-menu" style="line-height: 2.8rem;">  
                         </div>
-                    </div>        
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="head-menu-space"></div>
@@ -137,12 +137,17 @@
             em.initEvent('click', true, true);
             document.querySelector('#start-a-btn').dispatchEvent(em);
         });
+        function set_group_list(id) {
+            //wo.set('list-group', id);
+            m.route.set('/list/:group', {group : id});
+        }
 
         function ClearListSearch() {
             var knode = document.querySelector('#keywords');
             knode.value = '';
             wo.set('list-kwd', '');
             wo.set('list-page', 1);
+            //wo.remove('list-group');
             ApiGetList();
         }
 
@@ -157,10 +162,15 @@
         function ApiGetList() {
             var page = wo.get('list-page');
             var kwd = wo.get('list-kwd');
+            var group = wo.get('list-group');
 
             var args = '?page=' + page;
             if (kwd !== null && kwd.length > 0) {
-                args += `&kwd=${kwd}`;
+                args += `&kwd=${encodeURIComponent(kwd)}`;
+            }
+
+            if (group !== null && !isNaN(group) && parseInt(group) >= 0) {
+                args += `&group=${group}`;
             }
 
             raj.get({
@@ -174,7 +184,7 @@
                         var html = '';
                         for (var i=0; i<xr.rs_list.length;i++) {
                             html += `
-                                <div class="grid-x" style="margin-top:1.5rem;">
+                                <div class="grid-x" style="margin-top:1.5rem;margin-bottom:1.2rem;">
                                     <div class="cell small-12">
                                         <a href="#!/resource/${xr.rs_list[i].id}" style="color:#4a4a4a;">
                                             <h5>${xr.rs_list[i].rs_title}</h5>
@@ -227,33 +237,12 @@
         
         var main = document.querySelector('#main-container');
         var mainMenu = document.querySelector('#main-menu');
-
-        var menuList = {
-            view : function() {
-                return [
-                    m(
-                        'li', 
-                        m('a[href=/]', {
-                            oncreate : m.route.link,
-                            onclick : function() {
-
-                            }
-                        }, 'Home')
-                    ),
-
-                    m(
-                        'li', 
-                        m('a[href=/list]', {
-                            oncreate : m.route.link
-                        }, 'List')
-                    )
-                ];
-            }
-        };
         
         m.render(mainMenu, [
                     m(
-                        'li', 
+                        'div', {
+                            class : 'cell small-12 medium-6 large-4',
+                        }, 
                         m('a[href=/]', {
                             oncreate : m.route.link,
                             onclick : function() {
@@ -263,7 +252,9 @@
                     ),
 
                     m(
-                        'li', 
+                        'div', {
+                            class : 'cell small-12 medium-6 large-4',
+                        }, 
                         m('a[href=/list]', {
                             oncreate : m.route.link,
                             onclick : function() {
@@ -277,22 +268,73 @@
         var Home = {
             oncreate : function(vnode) {
                 m.render(sysbar, m('span', '首页'));
+                raj.get({
+                    url : _sysvar.apihost + '/u/rs/group/list',
+                    success : function(xr) {
+                        if (xr.status == 0) {
+                            var html = '<div class="grid-x">';
+                            for (var i=0; i<xr.group_list.length; i++) {
+                                html += `
+                                    <div class="cell small-6 medium-4 large-3" style="padding:0.5rem;line-height:3.5rem;text-align:center;">
+                                        <a href="javascript:set_group_list(${xr.group_list[i].id});" style="color:#4a4a4a;">
+                                            ${xr.group_list[i].group_name}
+                                        </a>
+                                    </div>
+                                `;
+                            }
+                            html += '</div>';
+                            var hc = document.querySelector('#home-content');
+                            if (hc) {
+                                hc.innerHTML = html;
+                            }
+                        }
+                    }
+                });
             },
             view : function() {
                 return m('div', {
                         class : 'grid-x'
-                    }, 
-                    m('div', {
-                        class : 'cell small-12'
-                    }, 'Welcome')
+                    },[
+                        m('div', {
+                            class : 'cell medium-2 large-3'
+                        }, ''),
+                        m('div', {
+                            class : 'cell small-12 medium-8 large-6',
+                            id : 'home-content',
+                            style : 'padding-left: 0.08rem;padding-right: 0.08rem;'
+                        }, ''),
+
+                        m('div', {
+                            class : 'cell medium-2 large-3'
+                        }, ''),
+                    ]
                 );
             }
         };
-        
 
         var List = {
-            oncreate : function() {
-                m.render(sysbar, m('span', '列表'));
+            oninit : function(vnode) {
+                if (vnode.attrs.group !== undefined) {
+                    wo.set('list-group', vnode.attrs.group);
+                } else {
+                    wo.remove('list-group');
+                }
+            },
+            onupdate : function(vnode) {
+                if (vnode.attrs.group !== undefined) {
+                    wo.set('list-group', vnode.attrs.group);
+                    ApiGetList();
+                } else {
+                    wo.remove('list-group');
+                    ApiGetList();
+                }
+            },
+            oncreate : function(vnode) {
+                m.render(sysbar, m('span', {
+                    onclick : function() {
+                        m.route.set('/');
+                    }
+                }, '返回'));
 
                 ListPageTemp('#search-block');
                 if (wo.get('list-kwd')) {
@@ -315,10 +357,9 @@
                     wo.set('list-page', 1);
                 }
                 ApiGetList();
+                
             },
             view : function() {
-                //return m('div', {id:"resource-list"}, 'Getting List...');
-                //return MithTemp(search_temp);
                 return m('div', {
                     class : 'grid-x'
                 }, [
@@ -326,22 +367,33 @@
                     
                     m('div', {
                         class : 'cell small-12 medium-8 large-6',
-                        
+                        style : 'padding-left: 0.08rem; padding-right: 0.08rem;'
                     }, [
                         m('div', {id : 'search-block'},''),
                         m('div', {id : 'resource-list'},''),
                         m('div', {
                             style : 'min-height:2.7rem;'
                         }, ''),
-                        m('div', {
-                            id : 'footer-block',
-                            style : 'z-index:2;position:fixed;width:75%;left:12.5%;bottom:0;background-color:#f2f2f2;'
-                        },''),
+                        m('div', {                            
+                            //id : 'footer-block',
+                            style : 'z-index:2;position:fixed;width:100%;left:0%;bottom:0;background-color:#ffffff;'
+                        },[
+                            m('div', {
+                                class : 'grid-x'
+                            },[
+                                m('div', {class : 'cell medium-2 large-3'}, ''),
+                                m('div', {
+                                    class : 'cell small-12 medium-8 large-6',
+                                    id : 'footer-block',
+                                    style : 'background-color:#f2f2f8;'
+                                }, ''),
+                                m('div', {class : 'cell medium-2 large-3'}, ''),
+                            ])
+                        ]),
                     ]),
 
                     m('div', {class : 'cell medium-2 large-3'}, '')
                 ]);
-
                 
             }
         };
@@ -355,7 +407,13 @@
                     url : _sysvar.apihost + '/u/rs/get/'+id,
                     success : function(xr) {
                         if (xr.status == 0) {
-                            m.render(sysbar, m('span', `${xr.resource.rs_title}`));
+                            //m.render(sysbar, m('span', `${xr.resource.rs_title}`));
+                            m.render(sysbar, m('span', {
+                                onclick : function(){
+                                    history.back();
+                                }
+                            },'返回'));
+
                             var r = document.querySelector('#resource-content');
                             if (r === null) {
                                 return ;
@@ -364,7 +422,7 @@
                             r.innerHTML = `
                                 <h4>${xr.resource.rs_title}</h4>
                                 <div style="border-top:solid 0.05rem #e2e2e2;">
-                                    <p style="font-size:86%;">
+                                    <p style="font-size:86%;color:#a3b4c5;">
                                         ${t.toLocaleString()}; ${xr.resource.rs_keywords}
                                     </p>
                                     <p>
@@ -402,6 +460,7 @@
         m.route(main, '/', {
             '/'     : Home,
             '/list' : List,
+            '/list/:group' : List,
             '/resource/:rsid' : Resource
         });
 

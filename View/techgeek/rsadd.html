@@ -93,7 +93,7 @@
 
         wstg_setItem(`${stkey}-init-flag`, parseInt(wstg_getItem(`${stkey}-init-flag`))+1);
         //内容更改后要检查是不是有图片删除了
-        var imgs = wstg_getItem(`${stkey}-image-list`, true);
+        /* var imgs = wstg_getItem(`${stkey}-image-list`, true);
         var new_imgs = [];
         for(var i=0; i<imgs.length; i++) {
             if (html.includes(imgs[i]) === false) {
@@ -106,7 +106,7 @@
         }
         
         new_imgs = null;
-        imgs = null;
+        imgs = null; */
     }
 
     editor.customConfig.customUploadImg = function (files, insert) {
@@ -118,15 +118,15 @@
                 url : _sysv.uapi + '/w/media/upload',
                 success:function(xr) {
                     if (xr.status == 0) {
-                        var imgs = wstg_getItem(`${stkey}-image-list`, true);
+                        //var imgs = wstg_getItem(`${stkey}-image-list`, true);
                         //push to array if media_url not exist
                         var img_url = _sysv.image_host + '/' + xr.sub_dir + '/' + xr.filename;
                         insert(img_url);
-                        if (imgs.indexOf(img_url) == -1) {
+                        /* if (imgs.indexOf(img_url) == -1) {
                             imgs.push(img_url);
                             wstg_setItem(`${stkey}-image-list`, imgs, true);
                         }
-                        imgs = null;
+                        imgs = null; */
                     } else {
                         //alert(xr.errinfo);
                         show_system_info(xr.errinfo, false);
