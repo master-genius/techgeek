@@ -62,9 +62,9 @@
             eblock.style.cssText = 'height:32rem;width:100%;';
         } else {
             ez.style.cssText = `
-                width:86%;
-                height:90%;
-                left : 7%;
+                width:99.8%;
+                height:93%;
+                left : 0.1%;
                 top: 0;
                 position:fixed;
                 z-index:100;
@@ -101,23 +101,7 @@
         );
 
         wstg_setItem(`${stkey}-rs-cache`, form_rs_data(), true);
-
         wstg_setItem(`${stkey}-init-flag`, parseInt(wstg_getItem(`${stkey}-init-flag`))+1);
-        //内容更改后要检查是不是有图片删除了
-        //var imgs = wstg_getItem(`${stkey}-image-list`, true);
-        /* var new_imgs = [];
-        for(var i=0; i<imgs.length; i++) {
-            if (html.includes(imgs[i]) === false) {
-                continue;
-            }
-            new_imgs.push(imgs[i]);
-        }
-        if (new_imgs.length !== imgs.length) {
-            wstg_setItem(`${stkey}-image-list`,new_imgs, true);
-        }
-        
-        new_imgs = null;
-        imgs = null; */
     }
 
     editor.customConfig.customUploadImg = function (files, insert) {
@@ -126,18 +110,13 @@
         for (var i=0; i< files.length; i++) {
             
             api_upload(files[i], {
-                url : _sysv.uapi + '/w/media/upload',
+                url : _sysv.mapi + '/mu/media/upload',
                 success:function(xr) {
                     if (xr.status == 0) {
                         var imgs = wstg_getItem(`${stkey}-image-list`, true);
                         //push to array if media_url not exist
                         var img_url = _sysv.image_host + '/' + xr.sub_dir + '/' + xr.filename;
                         insert(img_url);
-                        /* if (imgs.indexOf(img_url) == -1) {
-                            imgs.push(img_url);
-                            wstg_setItem(`${stkey}-image-list`, imgs, true);
-                        }
-                        imgs = null; */
                     } else {
                         //alert(xr.errinfo);
                         show_system_info(xr.errinfo, false);
@@ -186,7 +165,6 @@
             rs_content  : editor.txt.html(),
             rs_keywords : brutal.autod('#rs-keywords'),
             rs_group    : brutal.selected('#group-list'),
-            //image_list  : wstg_getItem(`${stkey}-image-list`),
             description : brutal.autod('#description'),
             is_publish  : (pnode.checked ? 1 : 0)
         };

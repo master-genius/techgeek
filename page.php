@@ -107,6 +107,16 @@ $app->group('/w', function() use ($app) {
         return ApiRet::raw($res, $page);
     });
 
+    $app->get('/lecture', function($req, $res) {
+        $page = $this->View->page('techgeek/lecture.html');
+        return ApiRet::raw($res, $page);
+    });
+
+    $app->get('/rs/mdadd', function($req, $res) {
+        $page = $this->View->page('techgeek/mdadd.html');
+        return ApiRet::raw($res, $page);
+    });
+
 });
 
 $app->group('/c', function() use ($app) {

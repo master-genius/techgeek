@@ -6,21 +6,24 @@
     <title>IT创造者</title>
     <link rel="stylesheet" href="/static/css/fdxy.min.css">
     <link rel="stylesheet" href="/static/css/master.css">
+    <link rel="stylesheet" href="/static/css/simplemde.min.css">
     <script src="/static/js/raj.js"></script>
     <script src="/static/writer/js/brutal_1804.js"></script>
     <script src="/static/writer/js/sys.js"></script>
     <script src="/static/writer/js/comp.js"></script>
-    <script src="/static/writer/js/config.js"></script>
+    
     
     <script>
 /*         var __real_host = "<?php echo $_SERVER['SERVER_NAME']; ?>";
         if (_sysv.auto_host) {
             _sysv.host = 'http://' + __real_host;
         } */
+        _sysv = {};
         _sysv.api = 'http://api.d.com';
-        _sysv.uapi = 'http://m.d.com';
+        _sysv.mapi = 'http://api.d.com';
         _sysv.auth_api = 'http://user.d.com';
-        _sysv.image_host = _sysv.uapi + '/media/images';
+        _sysv.image_host = _sysv.mapi + '/media/images';
+        
     </script>
     <script src="/static/writer/js/api.js"></script>
     <script>
@@ -74,6 +77,13 @@
         .start-menu a {
             color : #4a4a5f;
         }
+        /* .CodeMirror, .CodeMirror-scroll {
+            min-height: 30rem;
+        } */
+
+        .CodeMirror {
+            height : 30rem;
+        }
 
     </style>
 </head>
@@ -109,6 +119,12 @@
                 </div>
                 <div class="cell small-12 medium-6 large-4">
                     <a href="/w/media/list" class="start-menu">图片素材</a>
+                </div>
+                <div class="cell small-12 medium-6 large-4">
+                    <a href="/w/lecture" class="start-menu">课程</a>
+                </div>
+                <div class="cell small-12 medium-6 large-4">
+                    <a href="/w/rs/mdadd" class="start-menu">Markdown创作</a>
                 </div>
             </div>
         </div>

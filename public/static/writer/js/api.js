@@ -12,21 +12,21 @@ var api_table = {
     },
 
     media_list : {
-        url : _sysv.uapi + '/cw/media/list',
+        url : _sysv.mapi + '/m/media/list',
         method : 'get',
         args : 'none'
     },
 
     media_upload : {
-        url : _sysv.api + '/master/upload/media',
+        url : _sysv.mapi + '/mu/media/upload',
         method : 'upload',
         args : 'none'
     },
 
     media_del : {
-        url : _sysv.api + '/master/media/delete',
-        method : 'get',
-        args : 'must'
+        url : _sysv.mapi + '/m/media/delete',
+        method : 'post',
+        args : 'none'
     },
 
     rs_get : {
@@ -68,6 +68,36 @@ var api_table = {
     myinfo : {
         url : _sysv.api + '/r/userinfo',
         method : 'get',
+        args : 'none'
+    },
+
+    setnickname : {
+        url : _sysv.api + '/r/set/nickname',
+        method : 'post',
+        args : 'none'
+    },
+
+    lecture_add : {
+        url : _sysv.api + '/w/lecture/add',
+        method : 'post',
+        args : 'none'
+    },
+
+    lecture_delete : {
+        url : _sysv.api + '/w/lecture/delete',
+        method : 'post',
+        args : 'none'
+    },
+
+    lecture_list : {
+        url : _sysv.api + '/w/lecture/list',
+        method : 'get',
+        args : 'none'
+    },
+
+    lecture_update : {
+        url : _sysv.api + '/w/lecture/update',
+        method : 'post',
         args : 'none'
     }
 

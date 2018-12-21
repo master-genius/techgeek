@@ -1,0 +1,119 @@
+<?php include (VIEW_PATH . '/techgeek/header.html'); ?>
+
+<div class="full-container">
+    <div class="grid-x">
+        <div class="cell small-1 medium-1 large-2"></div>
+        <div class="cell small-8 medium-6 large-5">
+            <form onsubmit="return false;">
+                <label>课程名称</label>
+                <input type="text" placeholder="课程名称" id="lecture-name">
+                <input type="checkbox" id="is-publish">发布<br>
+                <input type="submit" class="button success" value="创建" onclick="createLecture();">
+            </form>
+        </div>
+        <div class="cell small-3 medium-5 large-5"></div>
+    </div>
+
+    <div class="grid-x" style="margin-bottom: 1.2rem;">
+        <div class="cell medium-1 large-2"></div>
+        <div class="cell small-12 medium-10 large-8" id="lecture-list">
+        </div>
+        <div class="cell medium-1 large-2"></div>
+    </div>
+</div>
+<script>
+
+    function chapter_block() {
+        var html = `
+            <div class="grid-x">
+                <div class="cell small-12" style="margin-left:1rem;margin-top:1rem;">
+                    <a href="javascript:hide_post_cover();">
+                        <h4 style="color: #456456;">返回</h4>
+                    </a>
+                </div>
+            </div>
+            <div class="grid-x">
+                <div class="cell medium-10 large-8">
+                </div>
+            </div>
+        `;
+        show_post_cover();
+        set_post_cover_data(html);
+        var lectures = wstg_getItem('lectures', true);
+        if (lectures === null) {
+            return false;
+        }
+        var chapter_list = [];
+        for(var i=0; i<lectures.length; i++) {
+            if (lectures[i].id == id) {
+                chapter_list = lectures[i].chapter_list;
+                break;
+            }
+        }
+        
+    }
+
+    function show_lecture_list(li) {
+        var lectures = '<div class="grid-x">';
+
+        for(var i=0; i<li.length; i++) {
+            lectures += `
+                <div class="cell small-12 medium-6 large-4" style="padding: 0.5rem; margin-top:0.5rem;">
+                    <div style="border:solid 0.05rem #c2c3c4;border-radius:0.2rem;padding:0.2rem;">
+                        <h5 id="lecture-name-${li[i].id}">${li[i].lecture_name}</h5>
+                        <p>
+                            创建时间：
+                            ${(new Date(parseInt(li[i].add_time) * 1000)).toLocaleString()}
+                        </p>
+                        <p>
+                            更新时间：
+                            ${(new Date(parseInt(li[i].update_time) * 1000)).toLocaleString()}
+                        </p>
+                        <p>
+                            <a href="javascript:chapter_block(${li[i].id});" style="color:#401242;">
+                                设置课程
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+        lectures += '</div>';
+        document.querySelector('#lecture-list').innerHTML = lectures;
+    }
+
+    function createLecture() {
+        var data = {
+            lecture_name : document.querySelector('#lecture-name').value.trim(),
+            is_publish : document.querySelector('#is-publish').checked ? 1 : 0
+        };
+        if (data.lecture_name.length == 0) {
+            show_system_info('名称不能为空', false);
+            return false;
+        }
+        _apicall({
+            name : 'lecture_add',
+            data : data,
+            success : function(xr) {
+                if (xr.status == 0) {
+                    location.reload(true);
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            }
+        });
+
+    }
+
+    window.onpageshow = function() {
+        _apicall({
+            name : 'lecture_list',
+            success : function (xr) {
+                wstg_setItem('lectures', xr.lectures, true);
+                show_lecture_list(xr.lectures);
+            }
+        });
+    };
+</script>
+
+<?php include (VIEW_PATH . '/techgeek/footer.html'); ?>
