@@ -6,10 +6,16 @@
     <title>IT Creator</title>
     <link rel="stylesheet" href="/static/css/fdxy.min.css">
     <link rel="stylesheet" href="/static/css/master.css">
+    <!-- <link rel="stylesheet" href="/static/prism/themes/prism-solarizedlight.css"> -->
     <script src="/static/js/raj.js"></script>
     <script src="/static/js/config.js"></script>
 
     <script src="/static/js/mithril.min.js"></script>
+    <!-- <script src="/static/prism/prism.js"></script> -->
+    <script>
+
+    </script>
+    
     <script>
         function MithTemp(temp) {
             if (temp instanceof Array) {
@@ -46,6 +52,8 @@
     </script>
     <script src="/static/techgeek/js/component.js"></script>
     <script src="/static/techgeek/js/wstorage.js"></script>
+    <!-- <script src="/static/js/simplemde.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         .head-menu{
             z-index : 2;
@@ -118,7 +126,6 @@
     </div>
     <div class="head-menu-space"></div>
 
-    
     <div class="full-container" id="main-container">
 
     </div>
@@ -227,11 +234,6 @@
         };
 
         var sysbar = document.querySelector('#sys-common-bar');
-
-        /* m.render(sysbar, m('span', 'BraveWang') );
-        setTimeout(function() {
-            m.render(sysbar, m('span', 'Brave') );
-        }, 180); */
 
         m.render(document.querySelector('#start-btn'), m.template(start_temp));
         
@@ -418,6 +420,10 @@
                             if (r === null) {
                                 return ;
                             }
+                            var content = xr.resource.rs_content;
+                            if (parseInt(xr.resource.content_type) == 1) {
+                                content = marked(xr.resource.rs_content);
+                            }
                             var t = new Date(parseInt(xr.resource.update_time) * 1000);
                             r.innerHTML = `
                                 <h4>${xr.resource.rs_title}</h4>
@@ -425,8 +431,8 @@
                                     <p style="font-size:86%;color:#a3b4c5;">
                                         ${t.toLocaleString()}; ${xr.resource.rs_keywords}
                                     </p>
-                                    <p>
-                                        ${xr.resource.rs_content}
+                                    <p id="main-content-block">
+                                        ${content}
                                     </p>
                                 </div>
                                 <p>&nbsp;</p>

@@ -101,8 +101,9 @@
 
         if (rs_data.rs_title.length == 0) {
             show_system_info('请填写标题', false);
-            return false;
+            return ;
         }
+        rs_data.rs_content = simplemde.value();
 
         var api_name = 'rs_add';
         if (sub_type) {
@@ -172,7 +173,7 @@
         }
         
         var glist = wstg_getItem('group-list', true);
-        if (glist !== undefined &&glist !== null) {
+        if (glist !== undefined && glist !== null) {
             init_group_list(glist);
         }  else {
             _apicall({
@@ -189,7 +190,6 @@
                 error : function(err) {
 
                 }
-
             });
             
         }
