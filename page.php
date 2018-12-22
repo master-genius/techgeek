@@ -116,6 +116,11 @@ $app->group('/w', function() use ($app) {
         $page = $this->View->page('techgeek/mdadd.html');
         return ApiRet::raw($res, $page);
     });
+    
+    $app->get('/rs/mdedit/{id}', function($req, $res) {
+        $page = $this->View->page('techgeek/mdedit.html');
+        return ApiRet::raw($res, $page);
+    });
 
 });
 
